@@ -90,6 +90,8 @@ public class IntegrationTests {
     @Autowired
     private CostCodeRepo costCodeRepo;
     @Autowired
+    private FixativeRepo fixativeRepo;
+    @Autowired
     private WorkTypeRepo workTypeRepo;
     @Autowired
     private MeasurementRepo measurementRepo;
@@ -887,6 +889,11 @@ public class IntegrationTests {
     @Transactional
     public void testAddNewCostCodeAndSetEnabled() throws Exception {
         testGenericAddNewAndSetEnabled("CostCode", "code", "S12345", costCodeRepo::findByCode, CostCode::getCode, "costCodes");
+    }
+    @Test
+    @Transactional
+    public void testAddNewFixativeAndSetEnabled() throws Exception {
+        testGenericAddNewAndSetEnabled("Fixative", "name", "Bananas", fixativeRepo::findByName, Fixative::getName, "fixatives");
     }
     @Test
     @Transactional

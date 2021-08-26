@@ -7,11 +7,12 @@ import java.util.Objects;
  * @author dr6
  */
 @Entity
-public class Fixative {
+public class Fixative implements HasEnabled {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+    private boolean enabled = true;
 
     public Fixative() {}
 
@@ -37,12 +38,23 @@ public class Fixative {
     }
 
     @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Fixative that = (Fixative) o;
         return (Objects.equals(this.id, that.id)
-                && Objects.equals(this.name, that.name));
+                && Objects.equals(this.name, that.name)
+                && this.enabled==that.enabled);
     }
 
     @Override

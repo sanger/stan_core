@@ -31,7 +31,8 @@ type Medium {
 }
 
 type Fixative {
-    name: String!,
+    name: String!
+    enabled: Boolean!
 }
 
 type MouldSize {
@@ -514,7 +515,7 @@ type Query {
     labwareTypes: [LabwareType!]!
     hmdmcs(includeDisabled: Boolean): [Hmdmc!]!
     mediums: [Medium!]!
-    fixatives: [Fixative!]!
+    fixatives(includeDisabled: Boolean): [Fixative!]!
     mouldSizes: [MouldSize!]!
     species(includeDisabled: Boolean): [Species!]!
     labware(barcode: String!): Labware!
@@ -570,6 +571,8 @@ type Mutation {
     setProjectEnabled(name: String!, enabled: Boolean!): Project!
     addCostCode(code: String!): CostCode!
     setCostCodeEnabled(code: String!, enabled: Boolean!): CostCode!
+    addFixative(name: String!): Fixative!
+    setFixativeEnabled(name: String!, enabled: Boolean!): Fixative!
     addWorkType(name: String!): WorkType!
     setWorkTypeEnabled(name: String!, enabled: Boolean!): WorkType!
     createWork(prefix: String!, workType: String!, project: String!, costCode: String!): Work!

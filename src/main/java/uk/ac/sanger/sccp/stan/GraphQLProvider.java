@@ -130,6 +130,8 @@ public class GraphQLProvider {
                         .dataFetcher("setProjectEnabled", transact(graphQLMutation.setProjectEnabled()))
                         .dataFetcher("addCostCode", transact(graphQLMutation.addCostCode()))
                         .dataFetcher("setCostCodeEnabled", transact(graphQLMutation.setCostCodeEnabled()))
+                        .dataFetcher("addFixative", transact(graphQLMutation.addFixative()))
+                        .dataFetcher("setFixativeEnabled", transact(graphQLMutation.setFixativeEnabled()))
                         .dataFetcher("addWorkType", transact(graphQLMutation.addWorkType()))
                         .dataFetcher("setWorkTypeEnabled", transact(graphQLMutation.setWorkTypeEnabled()))
                         .dataFetcher("createWork", transact(graphQLMutation.createWork()))

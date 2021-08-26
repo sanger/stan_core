@@ -60,6 +60,7 @@ public class GraphQLMutation extends BaseGraphQLResource {
     final SpeciesAdminService speciesAdminService;
     final ProjectService projectService;
     final CostCodeService costCodeService;
+    final FixativeService fixativeService;
     final WorkTypeService workTypeService;
     final WorkService workService;
     final UserAdminService userAdminService;
@@ -75,7 +76,8 @@ public class GraphQLMutation extends BaseGraphQLResource {
                            CommentAdminService commentAdminService, DestructionReasonAdminService destructionReasonAdminService,
                            HmdmcAdminService hmdmcAdminService, ReleaseDestinationAdminService releaseDestinationAdminService,
                            ReleaseRecipientAdminService releaseRecipientAdminService, SpeciesAdminService speciesAdminService,
-                           ProjectService projectService, CostCodeService costCodeService, WorkTypeService workTypeService,
+                           ProjectService projectService, CostCodeService costCodeService, FixativeService fixativeService,
+                           WorkTypeService workTypeService,
                            WorkService workService,
                            UserAdminService userAdminService) {
         super(objectMapper, authComp, userRepo);
@@ -99,6 +101,7 @@ public class GraphQLMutation extends BaseGraphQLResource {
         this.speciesAdminService = speciesAdminService;
         this.projectService = projectService;
         this.costCodeService = costCodeService;
+        this.fixativeService = fixativeService;
         this.workTypeService = workTypeService;
         this.workService = workService;
         this.userAdminService = userAdminService;
@@ -326,6 +329,14 @@ public class GraphQLMutation extends BaseGraphQLResource {
 
     public DataFetcher<CostCode> setCostCodeEnabled() {
         return adminSetEnabled(costCodeService::setEnabled, "SetCostCodeEnabled", "code");
+    }
+
+    public DataFetcher<Fixative> addFixative() {
+        return adminAdd(fixativeService::addNew, "AddFixative", "name");
+    }
+
+    public DataFetcher<Fixative> setFixativeEnabled() {
+        return adminSetEnabled(fixativeService::setEnabled, "SetFixativeEnabled", "name");
     }
 
     public DataFetcher<WorkType> addWorkType() {
