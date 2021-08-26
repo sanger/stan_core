@@ -1,0 +1,17 @@
+mutation {
+    stain(request: {
+        stainType: "H&E"
+        barcodes: ["STAN-50"]
+        timeMeasurements: [
+            { name: "Blueing", seconds: 2 }
+            { name: "Haematoxylin", seconds: 30 }
+            { name: "Eosin", seconds: 400 }
+        ]
+        workNumber: "SGP500"
+    }) {
+        operations {
+            id
+            operationType { name }
+        }
+    }
+}

@@ -1065,6 +1065,28 @@ public class IntegrationTests {
         assertFalse(worksData.stream().anyMatch(d -> d.get("workNumber").equals(workNumber)));
     }
 
+    @Transactional
+    @Test
+    public void testStain() throws Exception {
+        Work work = entityCreator.createWork(null, null, null);
+        User user = entityCreator.createUser("user1");
+        Sample sam = entityCreator.createSample(entityCreator.createTissue(entityCreator.createDonor("DONOR1"), "TISSUE1"), 5);
+        LabwareType lt = entityCreator.createLabwareType("lt1", 1, 1);
+        entityCreator.createLabware("STAN-50", lt, sam);
+
+        tester.setUser(user);
+        Object data = tester.post(tester.readResource("graphql/stain.graphql").replace("SGP500", work.getWorkNumber()));
+        Object stainData = chainGet(data, "data", "stain");
+        assertThat(chainGetList(stainData, "operations")).hasSize(1);
+        Map<String, ?> opData = chainGet(stainData, "operations", 0);
+        Integer opId = (Integer) opData.get("id");
+        assertNotNull(opId);
+        assertEquals("Stain", chainGet(opData, "operationType", "name"));
+
+        Operation op = opRepo.findById(opId).orElseThrow();
+        assertEquals(op.getStainType().getName(), "H&E");
+    }
+
     private void stubStorelightUnstore() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode storelightDataNode = objectMapper.createObjectNode()

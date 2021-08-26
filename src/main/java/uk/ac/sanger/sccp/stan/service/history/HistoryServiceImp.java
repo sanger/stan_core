@@ -31,12 +31,13 @@ public class HistoryServiceImp implements HistoryService {
     private final OperationCommentRepo opCommentRepo;
     private final SnapshotRepo snapshotRepo;
     private final WorkRepo workRepo;
+    private final MeasurementRepo measurementRepo;
 
     @Autowired
     public HistoryServiceImp(OperationRepo opRepo, LabwareRepo lwRepo, SampleRepo sampleRepo, TissueRepo tissueRepo,
                              DonorRepo donorRepo, ReleaseRepo releaseRepo,
                              DestructionRepo destructionRepo, OperationCommentRepo opCommentRepo,
-                             SnapshotRepo snapshotRepo, WorkRepo workRepo) {
+                             SnapshotRepo snapshotRepo, WorkRepo workRepo, MeasurementRepo measurementRepo) {
         this.opRepo = opRepo;
         this.lwRepo = lwRepo;
         this.sampleRepo = sampleRepo;
@@ -47,6 +48,7 @@ public class HistoryServiceImp implements HistoryService {
         this.opCommentRepo = opCommentRepo;
         this.snapshotRepo = snapshotRepo;
         this.workRepo = workRepo;
+        this.measurementRepo = measurementRepo;
     }
 
     @Override
@@ -169,6 +171,85 @@ public class HistoryServiceImp implements HistoryService {
     }
 
     /**
+     * Should the given measurement be added as a detail to the history entry under construction?
+     * It should, unless it has a field that indicates it is not relevant.
+     * @param measurement the measurement to be checked
+     * @param sampleId the id of the sample for the history entry
+     * @param labwareId the id of the destination labware for the history entry
+     * @param slotIdMap a map to look up slots from their id
+     * @return true if the measurement is applicable; false if it is not
+     */
+    public boolean doesMeasurementApply(Measurement measurement, int sampleId, int labwareId, Map<Integer, Slot> slotIdMap) {
+        if (measurement.getSampleId()!=null && measurement.getSampleId()!=sampleId) {
+            return false;
+        }
+        if (measurement.getSlotId()!=null) {
+            Slot slot = slotIdMap.get(measurement.getSlotId());
+            return (slot!=null && slot.getLabwareId()==labwareId);
+        }
+        return true;
+    }
+
+    /**
+     * Loads measurements for the given operations
+     * @param opIds the id of operations
+     * @return a map of operation id to list of measurements
+     */
+    public Map<Integer, List<Measurement>> loadOpMeasurements(Collection<Integer> opIds) {
+        List<Measurement> measurements = measurementRepo.findAllByOperationIdIn(opIds);
+        if (measurements.isEmpty()) {
+            return Map.of();
+        }
+        Map<Integer, List<Measurement>> map = new HashMap<>(opIds.size());
+        for (Measurement measurement : measurements) {
+            map.computeIfAbsent(measurement.getOperationId(), k -> new ArrayList<>()).add(measurement);
+        }
+        return map;
+    }
+
+    public String describeSeconds(String value) {
+        int seconds;
+        try {
+            seconds = Integer.parseInt(value);
+        } catch (NumberFormatException nfe) {
+            return value;
+        }
+        int minutes = seconds/60;
+        if (minutes==0) {
+            return seconds+" sec";
+        }
+        seconds %= 60;
+        int hours = minutes/60;
+        if (hours==0) {
+            return minutes+" min "+seconds+" sec";
+        }
+        minutes %= 60;
+        return String.format("%d hour %d min %d sec", hours, minutes, seconds);
+    }
+
+    /**
+     * Converts a measurement into a string to go into the details of a history entry
+     * @param measurement a measurement
+     * @param slotIdMap a map to look up slot ids
+     * @return a string describing the measurement
+     */
+    public String measurementDetail(Measurement measurement, Map<Integer, Slot> slotIdMap) {
+        MeasurementType mt = MeasurementType.forName(measurement.getName());
+        MeasurementValueType vt = (mt==null ? null : mt.getValueType());
+        String detail = measurement.getName() + ": ";
+        if (vt==MeasurementValueType.TIME) {
+            detail += describeSeconds(measurement.getValue());
+        } else {
+            detail += measurement.getValue();
+        }
+        if (measurement.getSlotId()!=null) {
+            assert slotIdMap != null;
+            detail = slotIdMap.get(measurement.getSlotId()).getAddress()+": "+detail;
+        }
+        return detail;
+    }
+
+    /**
      * Creates history entries for the given operations, where relevant to the specified samples
      * @param operations the operations to represent in the history
      * @param sampleIds the ids of relevant samples
@@ -180,8 +261,9 @@ public class HistoryServiceImp implements HistoryService {
                                                   Collection<Labware> labware, Map<Integer, Set<String>> opWork) {
         Set<Integer> opIds = operations.stream().map(Operation::getId).collect(toSet());
         var opComments = loadOpComments(opIds);
+        var opMeasurements = loadOpMeasurements(opIds);
         final Map<Integer, Slot> slotIdMap;
-        if (!opComments.isEmpty()) {
+        if (!opComments.isEmpty() || !opMeasurements.isEmpty()) {
             slotIdMap = labware.stream()
                     .flatMap(lw -> lw.getSlots().stream())
                     .collect(toMap(Slot::getId, Function.identity()));
@@ -190,8 +272,16 @@ public class HistoryServiceImp implements HistoryService {
         }
         List<HistoryEntry> entries = new ArrayList<>();
         for (Operation op : operations) {
+            String stainDetail;
+            if (op.getOperationType().has(OperationTypeFlag.STAIN)) {
+                StainType st = op.getStainType();
+                stainDetail = (st != null ? "Stain type: "+st.getName() : null);
+            } else {
+                stainDetail = null;
+            }
             Set<SampleAndLabwareIds> items = new LinkedHashSet<>();
             List<OperationComment> comments = opComments.getOrDefault(op.getId(), List.of());
+            List<Measurement> measurements = opMeasurements.getOrDefault(op.getId(), List.of());
             String workNumber;
             Set<String> workNumbers = opWork.get(op.getId());
             if (workNumbers!=null && !workNumbers.isEmpty()) {
@@ -212,6 +302,9 @@ public class HistoryServiceImp implements HistoryService {
             for (var item : items) {
                 HistoryEntry entry = new HistoryEntry(op.getId(), op.getOperationType().getName(),
                         op.getPerformed(), item.sourceId, item.destId, item.sampleId, username, workNumber);
+                if (stainDetail!=null) {
+                    entry.addDetail(stainDetail);
+                }
                 comments.forEach(com -> {
                     if (doesCommentApply(com, item.sampleId, item.destId, slotIdMap)) {
                         String detail = com.getComment().getText();
@@ -222,6 +315,13 @@ public class HistoryServiceImp implements HistoryService {
                         entry.addDetail(detail);
                     }
                 });
+                measurements.forEach(measurement -> {
+                    if (doesMeasurementApply(measurement, item.sampleId, item.destId, slotIdMap)) {
+                        String detail = measurementDetail(measurement, slotIdMap);
+                        entry.addDetail(detail);
+                    }
+                });
+
                 entries.add(entry);
             }
         }

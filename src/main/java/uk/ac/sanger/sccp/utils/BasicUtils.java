@@ -204,6 +204,18 @@ public class BasicUtils {
     }
 
     /**
+     * Collector to a hashmap where the values are the input objects
+     * @param keyMapper a mapping function to produce keys
+     * @param <T> the type of the input elements
+     * @param <K> the output type of the key mapping function
+     * @return a {@code Collector} which collects elements into a {@code Map}
+     *             whose keys are the result of applying a key mapping function to the input
+     *             elements, and whose values are input elements
+     */
+    public static <T, K> Collector<T, ?, HashMap<K,T>> toMap(Function<? super T, ? extends K> keyMapper) {
+        return Collectors.toMap(keyMapper, Function.identity(), illegalStateMerge(), HashMap::new);
+    }
+    /**
      * A binary operator that throws an illegal state exception. Used as the merge function for collecting
      * to a map whose incoming keys are expected to be unique.
      * @param <U> the type of value
@@ -246,5 +258,33 @@ public class BasicUtils {
             throw new IllegalArgumentException(message);
         }
         return text;
+    }
+
+    /**
+     * Predicate for filtering out duplicates from a stream.
+     * This uses a simple hashset to track what was seen: it is not guaranteed
+     * to work for a parallel stream.
+     * The keys (the results of the supplied function) must be hashable.
+     * @param function The function to extract the keys from the objects in the stream.
+     * @param <T> The stream type.
+     * @param <V> The type of key used to distinguish objects in the stream.
+     * @return a predicate for filtering out duplicates.
+     */
+    public static <T, V> Predicate<T> distinctBySerial(Function<? super T, V> function) {
+        final Set<V> seen = new HashSet<>();
+        return x -> seen.add(function.apply(x));
+    }
+
+    /**
+     * Predicate for filtering out duplicates in a string case insensitively.
+     * This uses a simple hashset to track what was seen: it is not guaranteed
+     * to work for a parallel stream.
+     * Case insensitivity for the purposes of this method means that the strings are equal
+     * when converted to upper case.
+     * @return a predicate for filtering out duplicate strings, case insensitively.
+     */
+    public static Predicate<String> distinctUCSerial() {
+        final Set<String> seen = new HashSet<>();
+        return x -> seen.add(x==null ? null : x.toUpperCase());
     }
 }

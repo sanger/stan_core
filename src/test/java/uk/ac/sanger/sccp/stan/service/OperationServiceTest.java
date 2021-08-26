@@ -2,6 +2,8 @@ package uk.ac.sanger.sccp.stan.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import uk.ac.sanger.sccp.stan.EntityFactory;
 import uk.ac.sanger.sccp.stan.model.*;
 import uk.ac.sanger.sccp.stan.repo.ActionRepo;
@@ -86,8 +88,9 @@ public class OperationServiceTest {
         assertThat(savedActions).isEmpty();
     }
 
-    @Test
-    public void testCreateOperationFromActions() {
+    @ParameterizedTest
+    @ValueSource(booleans={false, true})
+    public void testCreateOperationFromActions(boolean withMutator) {
         OperationType opType = new OperationType(1, "Passage");
         User user = EntityFactory.getUser();
         Slot slot0 = EntityFactory.getTube().getFirstSlot();
@@ -98,8 +101,15 @@ public class OperationServiceTest {
                 new Action(null, null, slot0, slot2, sample, sample),
                 new Action(null, null, slot1, slot2, sample, sample)
         );
+        Operation op;
+        if (withMutator) {
+            List<Operation> opStash = new ArrayList<>(1);
+            op = opService.createOperation(opType, user, actions, null, opStash::add);
+            assertEquals(opStash.size(), 1);
+        } else {
+            op = opService.createOperation(opType, user, actions, null);
+        }
 
-        Operation op = opService.createOperation(opType, user, actions, null);
         assertNotNull(op.getId());
         assertThat(savedOps).contains(op);
         assertThat(savedActions).hasSameElementsAs(actions);

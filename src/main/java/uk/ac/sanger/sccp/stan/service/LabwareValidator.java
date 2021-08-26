@@ -71,7 +71,7 @@ public class LabwareValidator {
 
     /**
      * Should labware be single-sample?
-     * By default, this field is false, indicating that single-sample is not a requiremenet for labware.
+     * By default, this field is false, indicating that single-sample is not a requirement for labware.
      * @return whether single-sample labware is required
      */
     public boolean isSingleSample() {

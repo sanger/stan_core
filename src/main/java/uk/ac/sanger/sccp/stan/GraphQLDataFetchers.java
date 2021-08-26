@@ -11,8 +11,7 @@ import uk.ac.sanger.sccp.stan.config.SessionConfig;
 import uk.ac.sanger.sccp.stan.model.*;
 import uk.ac.sanger.sccp.stan.repo.*;
 import uk.ac.sanger.sccp.stan.request.*;
-import uk.ac.sanger.sccp.stan.service.CommentAdminService;
-import uk.ac.sanger.sccp.stan.service.FindService;
+import uk.ac.sanger.sccp.stan.service.*;
 import uk.ac.sanger.sccp.stan.service.history.HistoryService;
 import uk.ac.sanger.sccp.stan.service.label.print.LabelPrintService;
 import uk.ac.sanger.sccp.stan.service.operation.plan.PlanService;
@@ -53,6 +52,7 @@ public class GraphQLDataFetchers extends BaseGraphQLResource {
     final CommentAdminService commentAdminService;
     final HistoryService historyService;
     final PlanService planService;
+    final StainService stainService;
 
     @Autowired
     public GraphQLDataFetchers(ObjectMapper objectMapper, AuthenticationComponent authComp, UserRepo userRepo,
@@ -64,7 +64,8 @@ public class GraphQLDataFetchers extends BaseGraphQLResource {
                                DestructionReasonRepo destructionReasonRepo, ProjectRepo projectRepo, CostCodeRepo costCodeRepo,
                                WorkTypeRepo workTypeRepo, WorkRepo workRepo,
                                LabelPrintService labelPrintService, FindService findService,
-                               CommentAdminService commentAdminService, HistoryService historyService, PlanService planService) {
+                               CommentAdminService commentAdminService, HistoryService historyService, PlanService planService,
+                               StainService stainService) {
         super(objectMapper, authComp, userRepo);
         this.sessionConfig = sessionConfig;
         this.tissueTypeRepo = tissueTypeRepo;
@@ -88,6 +89,7 @@ public class GraphQLDataFetchers extends BaseGraphQLResource {
         this.commentAdminService = commentAdminService;
         this.historyService = historyService;
         this.planService = planService;
+        this.stainService = stainService;
     }
 
     public DataFetcher<User> getUser() {
@@ -236,6 +238,10 @@ public class GraphQLDataFetchers extends BaseGraphQLResource {
   
     public DataFetcher<PlanData> getPlanData() {
         return dfe -> planService.getPlanData(dfe.getArgument("barcode"));
+    }
+
+    public DataFetcher<List<StainType>> getEnabledStainTypes() {
+        return dfe -> stainService.getEnabledStainTypes();
     }
 
     private boolean argOrFalse(DataFetchingEnvironment dfe, String argName) {

@@ -37,6 +37,7 @@ public class TestHistoryService {
     private OperationCommentRepo mockOpCommentRepo;
     private SnapshotRepo mockSnapshotRepo;
     private WorkRepo mockWorkRepo;
+    private MeasurementRepo mockMeasurementRepo;
 
     private HistoryServiceImp service;
 
@@ -56,9 +57,10 @@ public class TestHistoryService {
         mockOpCommentRepo = mock(OperationCommentRepo.class);
         mockSnapshotRepo = mock(SnapshotRepo.class);
         mockWorkRepo = mock(WorkRepo.class);
+        mockMeasurementRepo = mock(MeasurementRepo.class);
 
         service = spy(new HistoryServiceImp(mockOpRepo, mockLwRepo, mockSampleRepo, mockTissueRepo, mockDonorRepo,
-                mockReleaseRepo, mockDestructionRepo, mockOpCommentRepo, mockSnapshotRepo, mockWorkRepo));
+                mockReleaseRepo, mockDestructionRepo, mockOpCommentRepo, mockSnapshotRepo, mockWorkRepo, mockMeasurementRepo));
     }
 
     @Test

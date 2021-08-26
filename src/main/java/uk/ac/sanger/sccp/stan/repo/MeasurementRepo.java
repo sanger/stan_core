@@ -7,8 +7,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Repo for measurements
  * @author dr6
  */
 public interface MeasurementRepo extends CrudRepository<Measurement, Integer> {
     List<Measurement> findAllBySlotIdIn(Collection<Integer> slotIds);
+
+    List<Measurement> findAllByOperationIdIn(Collection<Integer> opIds);
 }

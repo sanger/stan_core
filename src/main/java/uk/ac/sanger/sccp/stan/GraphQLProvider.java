@@ -88,6 +88,7 @@ public class GraphQLProvider {
                         .dataFetcher("workTypes", graphQLDataFetchers.getWorkTypes())
                         .dataFetcher("works", graphQLDataFetchers.getWorks())
                         .dataFetcher("work", graphQLDataFetchers.getWork())
+                        .dataFetcher("stainTypes", graphQLDataFetchers.getEnabledStainTypes())
 
                         .dataFetcher("users", graphQLDataFetchers.getUsers())
                         .dataFetcher("planData", graphQLDataFetchers.getPlanData())
@@ -134,6 +135,7 @@ public class GraphQLProvider {
                         .dataFetcher("setWorkTypeEnabled", transact(graphQLMutation.setWorkTypeEnabled()))
                         .dataFetcher("createWork", transact(graphQLMutation.createWork()))
                         .dataFetcher("updateWorkStatus", transact(graphQLMutation.updateWorkStatus()))
+                        .dataFetcher("stain", transact(graphQLMutation.stain()))
 
                         .dataFetcher("addUser", transact(graphQLMutation.addUser()))
                         .dataFetcher("setUserRole", transact(graphQLMutation.setUserRole()))

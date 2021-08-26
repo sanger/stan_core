@@ -53,4 +53,18 @@ public class TestMeasurementRepo {
         assertThat(measurementRepo.findAllBySlotIdIn(List.of(slot2id, slot3id))).containsOnly(m2);
         assertThat(measurementRepo.findAllBySlotIdIn(List.of(slot1id, slot2id, slot3id))).containsOnly(m1, m2, m3);
     }
+
+    @Transactional
+    @Test
+    public void testFindAllByOperationIdIn() {
+        OperationType opType = entityCreator.createOpType("DoStuff", null);
+        User user = entityCreator.createUser("user1");
+        int op1id = opRepo.save(new Operation(null, opType, null, List.of(), user)).getId();
+        int op2id = opRepo.save(new Operation(null, opType, null, List.of(), user)).getId();
+        Measurement m1 = measurementRepo.save(new Measurement(null, "Blueing", "14", null, op1id, null));
+        Measurement m2 = measurementRepo.save(new Measurement(null, "Greening", "200", null, op2id, null));
+        assertThat(measurementRepo.findAllByOperationIdIn(List.of(op1id, op2id))).containsExactlyInAnyOrder(m1, m2);
+        assertThat(measurementRepo.findAllByOperationIdIn(List.of(op1id))).containsExactly(m1);
+        assertThat(measurementRepo.findAllByOperationIdIn(List.of(-400))).isEmpty();
+    }
 }

@@ -508,6 +508,23 @@ type Work {
     status: WorkStatus!
 }
 
+type StainType {
+    name: String!
+    measurementTypes: [String!]!
+}
+
+input TimeMeasurement {
+    name: String!
+    seconds: Int!
+}
+
+input StainRequest {
+    stainType: String!
+    barcodes: [String!]!
+    timeMeasurements: [TimeMeasurement!]
+    workNumber: String
+}
+
 type Query {
     user: User
     tissueTypes: [TissueType!]!
@@ -531,6 +548,7 @@ type Query {
     users(includeDisabled: Boolean): [User!]!
     find(request: FindRequest!): FindResult!
     planData(barcode: String!): PlanData!
+    stainTypes: [StainType!]!
 
     historyForSampleId(sampleId: Int!): History!
     historyForExternalName(externalName: String!): History!
@@ -574,6 +592,7 @@ type Mutation {
     setWorkTypeEnabled(name: String!, enabled: Boolean!): WorkType!
     createWork(prefix: String!, workType: String!, project: String!, costCode: String!): Work!
     updateWorkStatus(workNumber: String!, status: WorkStatus!, commentId: Int): Work!
+    stain(request: StainRequest!): OperationResult!
 
     addUser(username: String!): User!
     setUserRole(username: String!, role: UserRole!): User!

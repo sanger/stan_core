@@ -1,7 +1,7 @@
 package uk.ac.sanger.sccp.stan.model;
 
-import com.google.common.base.MoreObjects;
 import org.hibernate.annotations.*;
+import uk.ac.sanger.sccp.utils.BasicUtils;
 
 import javax.persistence.Entity;
 import javax.persistence.*;
@@ -33,6 +33,12 @@ public class Operation {
     private User user;
 
     private Integer planOperationId;
+
+    @ManyToOne
+    @JoinTable(name="stain",
+            joinColumns = @JoinColumn(name="operation_id"),
+            inverseJoinColumns = @JoinColumn(name="stain_type_id"))
+    private StainType stainType;
 
     public Operation() {}
 
@@ -98,6 +104,14 @@ public class Operation {
         this.planOperationId = planOperationId;
     }
 
+    public StainType getStainType() {
+        return this.stainType;
+    }
+
+    public void setStainType(StainType stainType) {
+        this.stainType = stainType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,7 +122,8 @@ public class Operation {
                 && Objects.equals(this.operationType, that.operationType)
                 && Objects.equals(this.user, that.user)
                 && Objects.equals(this.actions, that.actions)
-                && Objects.equals(this.planOperationId, that.planOperationId));
+                && Objects.equals(this.planOperationId, that.planOperationId)
+                && Objects.equals(this.stainType, that.stainType));
     }
 
     @Override
@@ -118,10 +133,11 @@ public class Operation {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
+        return BasicUtils.describe(this)
                 .add("id", id)
                 .add("performed", performed)
                 .add("operationType", operationType)
+                .addIfNotNull("stainType", stainType)
                 .toString();
     }
 }
